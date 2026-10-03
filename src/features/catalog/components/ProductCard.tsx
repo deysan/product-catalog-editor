@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import type { Product } from '../model/types'
 
+const priceFormatter = new Intl.NumberFormat('en-US', {
+  notation: 'standard',
+  useGrouping: false,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 export function ProductCard({ product }: { product: Product }) {
   const [photoUnavailable, setPhotoUnavailable] = useState(false)
 
@@ -14,7 +21,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <h2>{product.title}</h2>
-      <p className="product-card__price">{product.price.toFixed(2)}</p>
+      <p className="product-card__price">{priceFormatter.format(product.price)}</p>
     </article>
   )
 }

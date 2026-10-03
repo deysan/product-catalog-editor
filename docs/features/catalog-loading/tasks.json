@@ -1,0 +1,95 @@
+{
+  "slug": "catalog-loading",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Отримати й перевірити весь набір товарів",
+      "layer": "infra",
+      "deps": [],
+      "acs": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-10"
+      ],
+      "dod": "Vitest API: усі валідні набори повертають нові об’єкти з чотирма полями, усі невалідні набори та збої відхиляються цілком; назва й URL збережені без нормалізації.",
+      "files_hint": [
+        "src/features/catalog/api/products.ts",
+        "src/features/catalog/api/products.test.ts",
+        "src/features/catalog/model/types.ts"
+      ],
+      "file": "docs/features/catalog-loading/tasks/fetch-and-validate.md"
+    },
+    {
+      "id": "T2",
+      "title": "Керувати завантаженням і знімком у Zustand",
+      "layer": "app",
+      "deps": [
+        "T1"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-03",
+        "AC-04",
+        "AC-05",
+        "AC-06",
+        "AC-08",
+        "AC-10"
+      ],
+      "dod": "Vitest store: idle/error → loading → success/error, максимум одна активна спроба, жодного автоматичного retry або запиту після success; каталог і readonly-знімок не ділять масив чи об’єкти.",
+      "files_hint": [
+        "src/features/catalog/model/catalogStore.ts",
+        "src/features/catalog/model/catalogStore.test.ts"
+      ],
+      "file": "docs/features/catalog-loading/tasks/catalog-store.md"
+    },
+    {
+      "id": "T3",
+      "title": "Показати картку та заміну недоступного фото",
+      "layer": "ui",
+      "deps": [
+        "T2"
+      ],
+      "acs": [
+        "AC-02",
+        "AC-09"
+      ],
+      "dod": "React Testing Library: точні назва/src/alt/ціна, HTML у назві залишається текстом; збій одного img дає локальну заміну без загальної помилки.",
+      "files_hint": [
+        "src/features/catalog/components/ProductCard.tsx",
+        "src/features/catalog/components/ProductCard.test.tsx",
+        "src/styles/catalog.css"
+      ],
+      "file": "docs/features/catalog-loading/tasks/product-card.md"
+    },
+    {
+      "id": "T4",
+      "title": "Зібрати екран каталогу зі станами та ручним retry",
+      "layer": "ui",
+      "deps": [
+        "T3"
+      ],
+      "acs": [
+        "AC-01",
+        "AC-03",
+        "AC-04",
+        "AC-05",
+        "AC-06",
+        "AC-07",
+        "AC-08",
+        "AC-09",
+        "AC-10"
+      ],
+      "dod": "Vitest + RTL App/Catalog: усі стани SCR-01 і три результати retry, одна спроба у StrictMode, remount без автоматичного retry, доступна семантика й фокус; браузер: Enter/Space та ширини 320/1280px.",
+      "files_hint": [
+        "src/features/catalog/components/Catalog.tsx",
+        "src/features/catalog/components/Catalog.test.tsx",
+        "src/App.tsx",
+        "src/App.test.tsx",
+        "src/styles/base.css",
+        "src/styles/catalog.css"
+      ],
+      "file": "docs/features/catalog-loading/tasks/catalog-screen.md"
+    }
+  ]
+}

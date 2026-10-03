@@ -26,3 +26,14 @@ test('ціна нуль має два десяткові знаки', () => {
   render(<ProductCard product={{ ...product, price: 0 }} />)
   expect(screen.getByText('0.00')).toBeInTheDocument()
 })
+test('ціна 1e21 має два десяткові знаки без експоненційного запису', () => {
+  render(<ProductCard product={{ ...product, price: 1e21 }} />)
+  expect(screen.getByText('1000000000000000000000.00')).toBeInTheDocument()
+})
+test.each([
+  [Number.MIN_VALUE, '0.00'],
+  [Number.MAX_VALUE, `17976931348623157${'0'.repeat(292)}.00`],
+])('крайня скінченна ціна %s має звичайний десятковий формат', (price, expected) => {
+  render(<ProductCard product={{ ...product, price }} />)
+  expect(screen.getByText(expected)).toBeInTheDocument()
+})
