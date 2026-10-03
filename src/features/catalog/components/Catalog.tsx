@@ -16,7 +16,8 @@ export function Catalog() {
   const focusAfterRetry = useRef(false)
   const loading = status === 'idle' || status === 'loading'
   const empty = status === 'success' && products.length === 0
-  const hasProducts = status === 'success' && products.length > 0
+  const noMatch = status === 'success' && products.length > 0 && visibleProducts.length === 0
+  const hasProducts = status === 'success' && visibleProducts.length > 0
 
   useEffect(() => {
     if (useCatalogStore.getState().status === 'idle') void loadProducts()
@@ -55,6 +56,7 @@ export function Catalog() {
       >
         {loading && <p role="status">Завантаження товарів…</p>}
         {empty && <p role="status">Товарів немає</p>}
+        {noMatch && <p role="status">За вашим запитом товарів не знайдено</p>}
         {status === 'error' && (
           <>
             <p role="alert" className="catalog-error">{error}</p>

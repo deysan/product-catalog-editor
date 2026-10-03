@@ -147,3 +147,40 @@ test('відкрите поле з видимою міткою оновлює к
   }
   expect(screen.getByRole('region')).toHaveAttribute('aria-busy', 'false')
 })
+
+test('no-match має власний status без retry; зміна запиту й очищення відновлюють результати та фокус', () => {
+  useCatalogStore.setState({ products: searchProducts, initialProducts: searchProducts.map((item) => ({ ...item })), status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  input.focus()
+  for (const query of ['missing', 'another missing']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(screen.getByRole('status')).toHaveTextContent(/^За вашим запитом товарів не знайдено$/)
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBe(input)
+    expect(input).toBeEnabled()
+    expect(input).toHaveFocus()
+  }
+  fireEvent.change(input, { target: { value: 'milk' } })
+  expect(visibleTitles()).toEqual(['Milk'])
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  fireEvent.change(input, { target: { value: '' } })
+  expect(visibleTitles()).toEqual(searchProducts.map((item) => item.title))
+  expect(input).toHaveFocus()
+})
+
+test.each(['', '   ', 'apple'])('порожній каталог має пріоритет над no-match для %j', (query) => {
+  useCatalogStore.setState({ status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  fireEvent.change(input, { target: { value: query } })
+  expect(screen.getByRole('status')).toHaveTextContent(/^Товарів немає$/)
+  expect(screen.queryByText('За вашим запитом товарів не знайдено')).not.toBeInTheDocument()
+  expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  expect(input).toBeEnabled()
+})
