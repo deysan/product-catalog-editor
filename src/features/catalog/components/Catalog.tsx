@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useCatalogStore } from '../model/catalogStore'
+import { filterProductsByTitle } from '../model/search'
 import { ProductCard } from './ProductCard'
 import '../../../styles/catalog.css'
 
@@ -8,6 +9,9 @@ export function Catalog() {
   const status = useCatalogStore((state) => state.status)
   const error = useCatalogStore((state) => state.error)
   const loadProducts = useCatalogStore((state) => state.loadProducts)
+  const [query, setQuery] = useState('')
+  const searchId = useId()
+  const visibleProducts = filterProductsByTitle(products, query)
   const statusBlock = useRef<HTMLDivElement>(null)
   const focusAfterRetry = useRef(false)
   const loading = status === 'idle' || status === 'loading'
@@ -32,6 +36,18 @@ export function Catalog() {
 
   return (
     <section aria-label="Товари" aria-busy={loading}>
+      {status === 'success' && (
+        <div className="catalog-search">
+          <label className="catalog-search__label" htmlFor={searchId}>Пошук за назвою</label>
+          <input
+            id={searchId}
+            className="catalog-search__input"
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+      )}
       <div
         ref={statusBlock}
         tabIndex={-1}
@@ -48,7 +64,7 @@ export function Catalog() {
       </div>
       {hasProducts && (
         <ul className="catalog-list">
-          {products.map((product) => (
+          {visibleProducts.map((product) => (
             <li key={product.id}><ProductCard product={product} /></li>
           ))}
         </ul>

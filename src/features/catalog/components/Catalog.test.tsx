@@ -115,3 +115,35 @@ test('remount під час запиту і після успіху не роб�
   render(<Catalog />)
   expect(fetch).toHaveBeenCalledTimes(1)
 })
+
+const searchProducts = [
+  { ...product, id: 7, title: 'Apple Juice' },
+  { ...product, id: 2, title: 'Pineapple' },
+  { ...product, id: 9, title: 'Milk' },
+]
+const visibleTitles = () => screen.queryAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
+
+test('відкрите поле з видимою міткою оновлює картки без submit і повертає каталог після очищення', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(searchProducts)))
+  render(<Catalog />)
+  const input = await screen.findByRole('textbox', { name: 'Пошук за назвою' })
+  expect(screen.getByText('Пошук за назвою', { selector: 'label' })).toBeVisible()
+  expect(screen.getByLabelText('Пошук за назвою')).toBe(input)
+  expect(input).toHaveAttribute('type', 'text')
+  expect(input).toHaveValue('')
+  expect(input).toBeEnabled()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  input.focus()
+  for (const query of ['aPpLe', '  apple  ']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(visibleTitles()).toEqual(['Apple Juice', 'Pineapple'])
+    expect(input).toHaveValue(query)
+    expect(input).toHaveFocus()
+  }
+  for (const query of ['', '   ']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(visibleTitles()).toEqual(searchProducts.map((item) => item.title))
+    expect(input).toHaveFocus()
+  }
+  expect(screen.getByRole('region')).toHaveAttribute('aria-busy', 'false')
+})
