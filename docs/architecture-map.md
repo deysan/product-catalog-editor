@@ -29,13 +29,12 @@ frontend: "React + Vite + Zustand + vanilla CSS"
 Діаграма показує користувача, браузерний застосунок і зовнішнє джерело. Zustand і useState — внутрішній стан застосунку, не окремі сервіси.
 
 ```mermaid
-C4Container
-    title Product Catalog Editor — target baseline
-    Person(learner, "Учасник воркшопу", "Практикує Codex і SDD")
-    Container(app, "Product Catalog Editor", "React, TypeScript, Zustand", "Каталог, пошук і локальне редагування у браузері")
-    System_Ext(dummy, "DummyJSON", "Джерело товарів")
-    Rel(learner, app, "Переглядає та змінює каталог")
-    Rel(app, dummy, "Завантажує 20 товарів або повторює невдалий запит", "HTTPS / fetch")
+flowchart LR
+    learner["Учасник воркшопу — практикує Codex і SDD"]
+    app["Браузерний Product Catalog Editor<br/>React, TypeScript, Zustand<br/>Каталог, пошук і локальне редагування"]
+    dummy["DummyJSON — джерело товарів"]
+    learner -->|"Переглядає та змінює каталог"| app
+    app -->|"Завантажує 20 товарів або повторює невдалий запит — HTTPS / fetch"| dummy
 ```
 
 ## Module inventory
