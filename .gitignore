@@ -1,2 +1,8 @@
 .claude/*.local.md
 .worktrees/
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.DS_Store

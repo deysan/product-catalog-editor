@@ -19,7 +19,8 @@
         "src/styles/",
         "vite.config.ts",
         "tsconfig.json"
-      ]
+      ],
+      "status": "done"
     },
     {
       "id": "S2",
@@ -35,7 +36,8 @@
         "src/App.test.tsx",
         "vite.config.ts",
         "package.json"
-      ]
+      ],
+      "status": "done"
     },
     {
       "id": "S3",
@@ -49,7 +51,8 @@
       "files_hint": [
         "eslint.config.js",
         "package.json"
-      ]
+      ],
+      "status": "done"
     },
     {
       "id": "S4",
@@ -63,7 +66,8 @@
       "dod": "AGENTS.md узгоджено з картою та ADR; npm run build, npm run test -- --run і npm run lint проходять, npm run dev відкриває мінімальний екран. Міграції N/A, CI не створюється.",
       "files_hint": [
         "AGENTS.md"
-      ]
+      ],
+      "status": "done"
     }
   ]
 }

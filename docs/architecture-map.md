@@ -2,26 +2,26 @@
 status: current
 mode: greenfield-bootstrap
 updated_at: "2026-10-03"
-reflects_commit: "04bdba3"
+reflects_commit: "31ee1e9"
 language: "TypeScript"
-build_cmd: "npm run build" # planned: tsc -b && vite build
-test_cmd: "npm run test -- --run" # planned: vitest --run
-lint_cmd: "npm run lint" # planned: eslint .
+build_cmd: "npm run build" # verified: tsc -b && vite build
+test_cmd: "npm run test -- --run" # verified: vitest --run
+lint_cmd: "npm run lint" # verified: eslint .
 migration_tool: "" # N/A: no database
 frontend: "React + Vite + Zustand + vanilla CSS"
 ---
 
 # Architecture map — Product Catalog Editor
 
-Цільова основа нового навчального проєкту, а не опис реалізованого коду. На момент survey у репозиторії є лише документи; package.json, залежності й src ще не створено. Усі шляхи модулів і команди нижче **заплановані**. reflects_commit позначає HEAD до коміту survey. Підстава: [бриф](idea-brief.md), підтверджені автором рішення цього survey. Route: **quick**, depth: **easy**; формальну feature_size ще не класифіковано.
+Погоджена архітектура навчального проєкту; skeleton матеріалізовано 2026-10-03. Є package.json, package-lock.json, entry point, мінімальний App, базовий CSS, Vitest smoke-тест і ESLint. Модуль каталогу має порожні каталоги api/model/components; бізнес-функції ще заплановані. reflects_commit позначає HEAD до коміту scaffold. Підстава: [бриф](idea-brief.md), підтверджені автором рішення цього survey. Route: **quick**, depth: **easy**; формальну feature_size ще не класифіковано.
 
 ## Stack
 
-- TypeScript зі strict-перевіркою, React, Vite; менеджер пакетів npm. Версії визначимо під час майбутнього scaffold, зараз нічого не встановлюємо.
+- TypeScript зі strict-перевіркою, React, Vite; менеджер пакетів npm. Залежності встановлено; точні версії зафіксовано в package-lock.json. Node.js 22.12+; перевірено на Node.js 24.19.0 і npm 11.17.0.
 - Zustand для каталогу та локальних змін; fetch для початкового завантаження й повторної спроби; useState для чернетки форми.
 - Звичайний CSS, без бібліотеки компонентів, роутера й серверної частини.
-- Заплановані команди: `npm run dev` (Vite), `npm run build` (`tsc -b && vite build`), `npm run test -- --run` (Vitest у разовому режимі), `npm run lint` (ESLint). Вони поки не доступні й не виконувалися.
-- Запланована перевірка компонентів: React Testing Library, середовище jsdom. CI поза першою версією.
+- Робочі команди: `npm run dev` (Vite), `npm run build` (`tsc -b && vite build`), `npm run test -- --run` (Vitest у разовому режимі), `npm run lint` (ESLint). Build, test і lint виконано успішно; dev-сервер і мінімальний екран перевірено в Chrome.
+- Налаштована перевірка компонентів: React Testing Library, середовище jsdom. CI поза першою версією.
 - Рішення: [ADR-001](adr/001-toolchain.md), [ADR-002](adr/002-catalog-module.md), [ADR-003](adr/003-ephemeral-state.md).
 
 ## C4 — target baseline
@@ -39,7 +39,7 @@ flowchart LR
 
 ## Module inventory
 
-Усі наведені нижче шляхи — план; прикладів реалізованого коду поки немає.
+App, main, base.css і test/setup.ts створено. Каталоги api/model/components збережено через .gitkeep; їхні модулі та catalog.css залишаються планом.
 
 | Module | Path | Layers | Wired at | Responsibility |
 |---|---|---|---|---|
@@ -52,7 +52,7 @@ flowchart LR
 
 ## Conventions (cited — the rules a new feature must match)
 
-Посилання ведуть на наявні документи, а не на ще не створений код.
+Правила закріплено в AGENTS.md; посилання нижче ведуть на погоджені ADR.
 
 - **Module wiring:** прямі імпорти в одному модулі; UI звертається до store, store — до API; API не імпортує UI або store. Без універсальних шарів і barrel-файлів за замовчуванням — [ADR-002](adr/002-catalog-module.md).
 - **Error handling:** статус `idle | loading | success | error` і зрозуміле повідомлення в store; fetch перевіряє `response.ok`, помилки перехоплюються на межі store, UI показує повторну спробу — [ADR-003](adr/003-ephemeral-state.md).
@@ -74,8 +74,8 @@ flowchart LR
 
 ## Frontend / UI foundation
 
-- Наявних компонентів, токенів або екранів ще немає; бібліотека компонентів не планується.
-- Заплановано `src/styles/base.css` для базових стилів і мінімальних змінних кольору, відступів та шрифту; `src/styles/catalog.css` для каталогу. Значення визначимо під час реалізації.
+- Є мінімальний App із заголовком та повідомленням-заглушкою; бібліотека компонентів не планується.
+- Створено `src/styles/base.css` з базовими кольорами, системним шрифтом і змінною відступів; `src/styles/catalog.css` буде додано під час реалізації каталогу.
 - Один екран Catalog, ProductCard і ProductForm; loading, error із retry, порожній результат пошуку — стани цього екрана, не окремі маршрути.
 - Пошуковий рядок і відкритий редактор — локальний стан компонента; відфільтрований список обчислюється з актуальних товарів, не зберігається дублем у store.
 - Чернетка форми не змінює каталог до Save; скидання відновлює початковий завантажений список без fetch. Деталі закриття форми під час reset ще не визначені.
@@ -85,15 +85,15 @@ flowchart LR
 
 - Логіка товарів — `src/features/catalog/model`; взаємодія з зовнішнім джерелом — `api`; компоненти — `components`.
 - Перевірки store та API — поруч із відповідними файлами; інтеграційні перевірки UI — поруч із Catalog / ProductForm.
-- Прецедентів коду немає. Перший майбутній крок — завантаження й стани; далі пошук, редагування, видалення й скидання, з перевіркою після кожного кроку ([бриф §7](idea-brief.md)).
+- Прецедент монтування — src/App.test.tsx; бізнес-коду каталогу ще немає. Перший майбутній крок — завантаження й стани; далі пошук, редагування, видалення й скидання, з перевіркою після кожного кроку ([бриф §7](idea-brief.md)).
 
 ## Constraints & known tech-debt
 
 - Усі заявлені функції зберігаємо; просте оформлення, орієнтир 2–3 години не є підтвердженим дедлайном.
 - Без backend, авторизації, localStorage, TanStack Query, пагінації, серверного пошуку й запису; CI також поза першою версією.
 - Відкрито для специфікації: правила валідації назви/ціни, поведінка форми під час reset, точна семантика пошуку. Це не підстава розширювати фундамент.
-- Майбутні smoke-перевірки: build проходить, застосунок монтується, тестовий runner працює. Міграційна перевірка N/A.
-- Поточний survey створює тільки документи та scaffold-план; жодні команди застосунку не виконуються.
+- Виконані smoke-перевірки: build проходить, App монтується (1 тест), lint проходить, dev-екран відображається в Chrome. Міграційна перевірка N/A.
+- Scaffold виконав S1–S4; функції каталогу не реалізовано. Деталі перевірок — docs/features/_scaffold/tracker.md.
 
 ## Reconciliation with the authored architecture doc
 
