@@ -15,6 +15,6 @@ test('застосунок монтує публічний каталог', asyn
   expect(screen.getByRole('heading', { level: 1, name: 'Каталог товарів' })).toBeInTheDocument()
   expect(await screen.findByText('Товарів немає')).toBeInTheDocument()
   expect(fetch).toHaveBeenCalledTimes(1)
-  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: 'Пошук за назвою' })).toBeEnabled()
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
 })

@@ -115,3 +115,165 @@ test('remount під час запиту і після успіху не роб�
   render(<Catalog />)
   expect(fetch).toHaveBeenCalledTimes(1)
 })
+
+const searchProducts = [
+  { ...product, id: 7, title: 'Apple Juice' },
+  { ...product, id: 2, title: 'Pineapple' },
+  { ...product, id: 9, title: 'Milk' },
+]
+const visibleTitles = () => screen.queryAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
+
+test('відкрите поле з видимою міткою оновлює картки без submit і повертає каталог після очищення', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(searchProducts)))
+  render(<Catalog />)
+  const input = await screen.findByRole('textbox', { name: 'Пошук за назвою' })
+  expect(screen.getByText('Пошук за назвою', { selector: 'label' })).toBeVisible()
+  expect(screen.getByLabelText('Пошук за назвою')).toBe(input)
+  expect(input).toHaveAttribute('type', 'text')
+  expect(input).toHaveValue('')
+  expect(input).toBeEnabled()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  input.focus()
+  for (const query of ['aPpLe', '  apple  ']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(visibleTitles()).toEqual(['Apple Juice', 'Pineapple'])
+    expect(input).toHaveValue(query)
+    expect(input).toHaveFocus()
+  }
+  for (const query of ['', '   ']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(visibleTitles()).toEqual(searchProducts.map((item) => item.title))
+    expect(input).toHaveFocus()
+  }
+  expect(screen.getByRole('region')).toHaveAttribute('aria-busy', 'false')
+})
+
+test('no-match має власний status без retry; зміна запиту й очищення відновлюють результати та фокус', () => {
+  useCatalogStore.setState({ products: searchProducts, initialProducts: searchProducts.map((item) => ({ ...item })), status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  input.focus()
+  for (const query of ['missing', 'another missing']) {
+    fireEvent.change(input, { target: { value: query } })
+    expect(screen.getByRole('status')).toHaveTextContent(/^За вашим запитом товарів не знайдено$/)
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBe(input)
+    expect(input).toBeEnabled()
+    expect(input).toHaveFocus()
+  }
+  fireEvent.change(input, { target: { value: 'milk' } })
+  expect(visibleTitles()).toEqual(['Milk'])
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  fireEvent.change(input, { target: { value: '' } })
+  expect(visibleTitles()).toEqual(searchProducts.map((item) => item.title))
+  expect(input).toHaveFocus()
+})
+
+test.each(['', '   ', 'apple'])('порожній каталог має пріоритет над no-match для %j', (query) => {
+  useCatalogStore.setState({ status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  fireEvent.change(input, { target: { value: query } })
+  expect(screen.getByRole('status')).toHaveTextContent(/^Товарів немає$/)
+  expect(screen.queryByText('За вашим запитом товарів не знайдено')).not.toBeInTheDocument()
+  expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  expect(input).toBeEnabled()
+})
+
+test('пошукові дії зберігають усі дані й посилання каталогу та знімка без нових fetch', async () => {
+  const fetchMock = vi.fn().mockResolvedValue(response(searchProducts))
+  vi.stubGlobal('fetch', fetchMock)
+  render(<Catalog />)
+  const input = await screen.findByRole('textbox', { name: 'Пошук за назвою' })
+  const { products, initialProducts } = useCatalogStore.getState()
+  const beforeProducts = structuredClone(products)
+  const beforeSnapshot = structuredClone(initialProducts)
+  const requestCount = fetchMock.mock.calls.length
+  expect(requestCount).toBe(1)
+  expect(products).not.toBe(initialProducts)
+  for (const query of ['aPpLe', '  milk  ', 'missing', '<script>alert(1)</script>', '   ', '']) {
+    fireEvent.change(input, { target: { value: query } })
+    const state = useCatalogStore.getState()
+    expect(fetchMock).toHaveBeenCalledTimes(requestCount)
+    expect(state.products).toEqual(beforeProducts)
+    expect(state.initialProducts).toEqual(beforeSnapshot)
+    expect(state.products).toBe(products)
+    expect(state.initialProducts).toBe(initialProducts)
+  }
+  expect(visibleTitles()).toEqual(beforeProducts.map((item) => item.title))
+})
+
+test('активний запит реагує на перейменування й видалення поточних товарів, зберігаючи знімок', () => {
+  const snapshot = searchProducts.map((item) => ({ ...item }))
+  const snapshotBefore = structuredClone(snapshot)
+  useCatalogStore.setState({ products: searchProducts.map((item) => ({ ...item })), initialProducts: snapshot, status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  input.focus()
+  fireEvent.change(input, { target: { value: '  aPpLe  ' } })
+  expect(visibleTitles()).toEqual(['Apple Juice', 'Pineapple'])
+  const renamed = [
+    { ...searchProducts[0], title: 'Orange Juice' },
+    searchProducts[1],
+    { ...searchProducts[2], title: 'Apple Milk' },
+  ]
+  act(() => useCatalogStore.setState({ products: renamed }))
+  expect(visibleTitles()).toEqual(['Pineapple', 'Apple Milk'])
+  act(() => useCatalogStore.setState({ products: renamed.slice(2) }))
+  expect(visibleTitles()).toEqual(['Apple Milk'])
+  act(() => useCatalogStore.setState({ products: [renamed[0]] }))
+  expect(screen.getByRole('status')).toHaveTextContent(/^За вашим запитом товарів не знайдено$/)
+  expect(visibleTitles()).toEqual([])
+  act(() => useCatalogStore.setState({ products: [] }))
+  expect(screen.getByRole('status')).toHaveTextContent(/^Товарів немає$/)
+  expect(input).toHaveValue('  aPpLe  ')
+  expect(input).toHaveFocus()
+  expect(screen.getByRole('textbox')).toBe(input)
+  expect(useCatalogStore.getState().initialProducts).toBe(snapshot)
+  expect(useCatalogStore.getState().initialProducts).toEqual(snapshotBefore)
+  expect(fetch).not.toHaveBeenCalled()
+})
+
+test('idle/loading та error приховують пошук; retry повертає відкритий пошук лише після success', async () => {
+  let reject!: (reason: Error) => void
+  let resolve!: (value: unknown) => void
+  const fetchMock = vi.fn()
+    .mockImplementationOnce(() => new Promise((_, fail) => { reject = fail }))
+    .mockImplementationOnce(() => new Promise((done) => { resolve = done }))
+  vi.stubGlobal('fetch', fetchMock)
+  render(<Catalog />)
+  const region = screen.getByRole('region', { name: 'Товари' })
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent('Завантаження товарів…')
+  expect(region).toHaveAttribute('aria-busy', 'true')
+  expect(screen.queryByText('За вашим запитом товарів не знайдено')).not.toBeInTheDocument()
+  await act(async () => { reject(new Error('network')) })
+  expect(screen.getByRole('alert')).toHaveTextContent(errorText)
+  expect(region).toHaveAttribute('aria-busy', 'false')
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  const retry = screen.getByRole('button', { name: 'Спробувати ще' })
+  retry.focus()
+  fireEvent.click(retry)
+  const statusBlock = screen.getByRole('status').parentElement!
+  expect(statusBlock).toHaveFocus()
+  expect(region).toHaveAttribute('aria-busy', 'true')
+  expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  await act(async () => { resolve(response(searchProducts)) })
+  expect(statusBlock).toHaveFocus()
+  expect(region).toHaveAttribute('aria-busy', 'false')
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  expect(input).toBeEnabled()
+  expect(input).toHaveValue('')
+  fireEvent.change(input, { target: { value: 'apple' } })
+  expect(visibleTitles()).toEqual(['Apple Juice', 'Pineapple'])
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+})
