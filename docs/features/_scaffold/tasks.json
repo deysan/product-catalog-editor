@@ -1,0 +1,69 @@
+{
+  "slug": "_scaffold",
+  "tasks": [
+    {
+      "id": "S1",
+      "title": "Створити мінімальну структуру та entry point",
+      "layer": "scaffold",
+      "deps": [],
+      "acs": [],
+      "dod": "npm run build проходить; npm run dev завантажує мінімальний екран без помилок. Структура відповідає карті, бізнес-функції не реалізуються.",
+      "files_hint": [
+        "package.json",
+        "index.html",
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/features/catalog/api/",
+        "src/features/catalog/model/",
+        "src/features/catalog/components/",
+        "src/styles/",
+        "vite.config.ts",
+        "tsconfig.json"
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Налаштувати Vitest і smoke-перевірку монтування",
+      "layer": "scaffold",
+      "deps": [
+        "S1"
+      ],
+      "acs": [],
+      "dod": "npm run test -- --run проходить із перевіркою монтування мінімального App; runner працює без тестів каталогу; npm run build проходить. Тести не звертаються до мережі.",
+      "files_hint": [
+        "src/test/setup.ts",
+        "src/App.test.tsx",
+        "vite.config.ts",
+        "package.json"
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Налаштувати локальну статичну перевірку",
+      "layer": "scaffold",
+      "deps": [
+        "S1"
+      ],
+      "acs": [],
+      "dod": "npm run lint та npm run build проходять; TypeScript strict увімкнено. Застосунок монтується, smoke-тест S2 залишається зеленим після завершення всього scaffold.",
+      "files_hint": [
+        "eslint.config.js",
+        "package.json"
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Записати конвенції для Codex і перевірити skeleton",
+      "layer": "scaffold",
+      "deps": [
+        "S2",
+        "S3"
+      ],
+      "acs": [],
+      "dod": "AGENTS.md узгоджено з картою та ADR; npm run build, npm run test -- --run і npm run lint проходять, npm run dev відкриває мінімальний екран. Міграції N/A, CI не створюється.",
+      "files_hint": [
+        "AGENTS.md"
+      ]
+    }
+  ]
+}
