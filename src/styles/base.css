@@ -1,10 +1,21 @@
 :root {
   font-family: system-ui, sans-serif;
-  color: #172033;
-  background: #f6f7f9;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --space-unit: 0.5rem;
+  --color-background: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-text: #172033;
+  --color-muted: #475569;
+  --color-border: #cbd5e1;
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-focus: #1d4ed8;
+  --color-error: #b91c1c;
 }
 
 * {
@@ -19,5 +30,24 @@ body {
 .app-shell {
   max-width: 960px;
   margin-inline: auto;
-  padding: calc(var(--space-unit) * 4);
+  padding: calc(var(--space-unit) * 2);
+  overflow-wrap: anywhere;
+}
+
+h1 {
+  margin: 0 0 calc(var(--space-unit) * 3);
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    padding: calc(var(--space-unit) * 4);
+  }
 }

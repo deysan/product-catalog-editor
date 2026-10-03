@@ -24,7 +24,7 @@ const invalidProducts = [
   { ...product, thumbnail: 'ftp://example.com/a' }, { ...product, thumbnail: 1 },
 ]
 test.each(invalidProducts)('відхиляє весь набір із некоректним останнім товаром %j', async (invalid) => {
-  respond({ products: [product, invalid] })
+  respond({ products: [{ ...product, id: 99 }, invalid] })
   await expect(fetchProducts()).rejects.toThrow()
 })
 test.each([null, [], {}, { products: null }, { products: {} },
