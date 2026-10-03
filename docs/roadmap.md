@@ -19,7 +19,7 @@ updated_at: "2026-10-03"
 |---|---|---|:---:|---|
 | 0 | Підготувати skeleton (`_scaffold`) за наявним планом; не дублювати його задачі | [architecture-map.md §Stack](architecture-map.md#stack); [scaffold-план](features/_scaffold/tasks.json) | S | idea |
 | 1 | [Завантаження й стани (`catalog-loading`)](features/catalog-loading/spec.md): до 20 товарів, картки з фото, назвою й ціною, loading, empty, error та retry | [idea-brief.md §1 Raw idea](idea-brief.md#1-raw-idea), [§7 Recommendation](idea-brief.md#7-recommendation); уточнення автора в [spec](features/catalog-loading/spec.md) | S | shipped |
-| 2 | Локальний пошук (`catalog-search`): пошук за назвою серед завантажених товарів | [idea-brief.md §1 Raw idea](idea-brief.md#1-raw-idea), [§7 Recommendation](idea-brief.md#7-recommendation) | XS | idea |
+| 2 | [Локальний пошук (`catalog-search`)](features/catalog-search/spec.md): пошук за назвою серед завантажених товарів | [idea-brief.md §1 Raw idea](idea-brief.md#1-raw-idea), [§7 Recommendation](idea-brief.md#7-recommendation) | XS | shipped |
 | 3 | Редагування (`catalog-editing`): форма назви й ціни, Save та Cancel, чернетка окремо від каталогу | [idea-brief.md §1 Raw idea](idea-brief.md#1-raw-idea), [§7 Recommendation](idea-brief.md#7-recommendation) | XS | idea |
 | 4 | Видалення й скидання (`catalog-reset`): локальне видалення та відновлення початкового списку без fetch | [idea-brief.md §1 Raw idea](idea-brief.md#1-raw-idea), [§7 Recommendation](idea-brief.md#7-recommendation) | XS | idea |
 
@@ -55,13 +55,14 @@ Skeleton та завантаження позначено S через введ�
 
 | # | Question | Type | Owner | Blocks |
 |---|---|:---:|:---:|:---:|
-| D1 | Чи ігнорує пошук регістр і крайні пробіли та чи шукає підрядок назви? Узгодити в специфікації локального пошуку | grilling | human | 2 |
 | D2 | Які мінімальні правила валідації назви й ціни та як показувати помилку? Узгодити в специфікації редагування | grilling | human | 3 |
 | D3 | Що відбувається з відкритою формою й незбереженою чернеткою під час reset? Узгодити в специфікації видалення й скидання | grilling | human | 4 |
 
 Питання походять із [брифу §8 Open questions](idea-brief.md#8-open-questions) та [карти §Constraints & known tech-debt](architecture-map.md#constraints--known-tech-debt); інструменти перевірки вже обрані в survey. Немає питань, що потребують зовнішнього пошуку або прототипу. Дату й фактичну тривалість воркшопу організатор визначає окремо — вони не блокують підготовку документів.
 
 ## Decisions so far
+
+- D1 закрито: пошук підрядка назви без урахування регістру та крайніх пробілів запиту; лише пробіли показують весь поточний каталог. Автор підтвердив семантику; [специфікація catalog-search](features/catalog-search/spec.md), XS / quick / easy. Реалізацію завершено й перевірено локально; [ship](features/catalog-search/ship.md).
 
 - Практика Codex і SDD через послідовні перевірені кроки → [бриф §2 Problem](idea-brief.md#2-problem), [§7 Recommendation](idea-brief.md#7-recommendation).
 - React + Vite + TypeScript, npm, fetch, звичайний CSS, Vitest + React Testing Library, ESLint; без CI → [ADR-001](adr/001-toolchain.md).
@@ -98,12 +99,13 @@ flowchart LR
 | 3 | 3 — Редагування | `src/features/catalog/components/` (new), `src/features/catalog/model/` (new) | Видалення й скидання |
 | 4 | 4 — Видалення й скидання | `src/features/catalog/components/` (new), `src/features/catalog/model/` (new) | Завершення першої версії |
 
-Перехід між хвилями — після поведінкової перевірки та локальних build/test/lint. Під час майбутньої роботи для кожного функціонального кроку створюється власна коротка специфікація; `quick` скорочує застосовні підготовчі артефакти, але зберігає перевірку поведінки. Поточний локальний ship завершує лише `catalog-loading`; наступну хвилю не запускаємо.
+Перехід між хвилями — після поведінкової перевірки та локальних build/test/lint. Під час майбутньої роботи для кожного функціонального кроку створюється власна коротка специфікація; `quick` скорочує застосовні підготовчі артефакти, але зберігає перевірку поведінки. Локально завершено `catalog-loading` і `catalog-search`; наступну хвилю не запускаємо.
 
 ## Shipped
 
-Крок 1 доставлено локально в feature-гілці; `shipped` тут означає локальне завершення, без публікації, PR або злиття. Skeleton матеріалізовано за картою архітектури, без окремого запису про доставлення.
+Кроки 1 і 2 доставлено локально у feature-гілках; `shipped` тут означає локальне завершення, без публікації, PR або злиття. Skeleton матеріалізовано за картою архітектури, без окремого запису про доставлення.
 
 | Step | Shipped | Link |
 |---|---|---|
 | 1 — catalog-loading | 2026-10-03 (локально) | [Changelog](features/catalog-loading/changelog.md), [ship / відкладені кроки](features/catalog-loading/ship.md) |
+| 2 — catalog-search | 2026-10-03 (локально; PR підготовлено) | [Changelog](features/catalog-search/changelog.md), [ship / PR body](features/catalog-search/ship.md) |

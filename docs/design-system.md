@@ -59,7 +59,6 @@ CatalogSearchField зареєстровано як композицію нати
 | NEW: Catalog | `docs/features/catalog-loading/ux-flows.md:22` | loading / success / empty / error | Один SCR-01; взаємовиключні результати завантаження |
 | NEW: ProductCard | `docs/features/catalog-loading/ux-flows.md:29` | Фото / недоступне фото | Проста картка: фото, повна назва, ціна; без дій редагування |
 | NEW: RetryButton | `docs/features/catalog-loading/ux-flows.md:31` | Звичайний / hover / focus | Нативний `button`, лише в стані error |
-
 | CatalogSearchField | `src/features/catalog/components/Catalog.tsx:42`; `src/styles/catalog.css:113` | success / all-products / matches / no-match / catalog-empty | Видимий label «Пошук за назвою», пов’язаний text-input; локальний query, без submit; прихований до success |
 
 ## Interaction & writing conventions
