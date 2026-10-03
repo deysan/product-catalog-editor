@@ -184,3 +184,26 @@ test.each(['', '   ', 'apple'])('порожній каталог має пріо
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
   expect(input).toBeEnabled()
 })
+
+test('пошукові дії зберігають усі дані й посилання каталогу та знімка без нових fetch', async () => {
+  const fetchMock = vi.fn().mockResolvedValue(response(searchProducts))
+  vi.stubGlobal('fetch', fetchMock)
+  render(<Catalog />)
+  const input = await screen.findByRole('textbox', { name: 'Пошук за назвою' })
+  const { products, initialProducts } = useCatalogStore.getState()
+  const beforeProducts = structuredClone(products)
+  const beforeSnapshot = structuredClone(initialProducts)
+  const requestCount = fetchMock.mock.calls.length
+  expect(requestCount).toBe(1)
+  expect(products).not.toBe(initialProducts)
+  for (const query of ['aPpLe', '  milk  ', 'missing', '<script>alert(1)</script>', '   ', '']) {
+    fireEvent.change(input, { target: { value: query } })
+    const state = useCatalogStore.getState()
+    expect(fetchMock).toHaveBeenCalledTimes(requestCount)
+    expect(state.products).toEqual(beforeProducts)
+    expect(state.initialProducts).toEqual(beforeSnapshot)
+    expect(state.products).toBe(products)
+    expect(state.initialProducts).toBe(initialProducts)
+  }
+  expect(visibleTitles()).toEqual(beforeProducts.map((item) => item.title))
+})
