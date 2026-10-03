@@ -207,3 +207,35 @@ test('пошукові дії зберігають усі дані й посил
   }
   expect(visibleTitles()).toEqual(beforeProducts.map((item) => item.title))
 })
+
+test('активний запит реагує на перейменування й видалення поточних товарів, зберігаючи знімок', () => {
+  const snapshot = searchProducts.map((item) => ({ ...item }))
+  const snapshotBefore = structuredClone(snapshot)
+  useCatalogStore.setState({ products: searchProducts.map((item) => ({ ...item })), initialProducts: snapshot, status: 'success' })
+  vi.stubGlobal('fetch', vi.fn())
+  render(<Catalog />)
+  const input = screen.getByRole('textbox', { name: 'Пошук за назвою' })
+  input.focus()
+  fireEvent.change(input, { target: { value: '  aPpLe  ' } })
+  expect(visibleTitles()).toEqual(['Apple Juice', 'Pineapple'])
+  const renamed = [
+    { ...searchProducts[0], title: 'Orange Juice' },
+    searchProducts[1],
+    { ...searchProducts[2], title: 'Apple Milk' },
+  ]
+  act(() => useCatalogStore.setState({ products: renamed }))
+  expect(visibleTitles()).toEqual(['Pineapple', 'Apple Milk'])
+  act(() => useCatalogStore.setState({ products: renamed.slice(2) }))
+  expect(visibleTitles()).toEqual(['Apple Milk'])
+  act(() => useCatalogStore.setState({ products: [renamed[0]] }))
+  expect(screen.getByRole('status')).toHaveTextContent(/^За вашим запитом товарів не знайдено$/)
+  expect(visibleTitles()).toEqual([])
+  act(() => useCatalogStore.setState({ products: [] }))
+  expect(screen.getByRole('status')).toHaveTextContent(/^Товарів немає$/)
+  expect(input).toHaveValue('  aPpLe  ')
+  expect(input).toHaveFocus()
+  expect(screen.getByRole('textbox')).toBe(input)
+  expect(useCatalogStore.getState().initialProducts).toBe(snapshot)
+  expect(useCatalogStore.getState().initialProducts).toEqual(snapshotBefore)
+  expect(fetch).not.toHaveBeenCalled()
+})
